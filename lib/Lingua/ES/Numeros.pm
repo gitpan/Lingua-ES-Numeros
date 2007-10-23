@@ -12,10 +12,6 @@ Lingua::ES::Numeros - Translates numbers to spanish text
    $obj->{GENERO} = 'a';
    print $obj->Ordinal(124856), "\n";
 
-=head1 REQUIERE
-
-Perl 5.006, Exporter, Carp
-
 =head1 DESCRIPTION
 
 Lingua::ES::Numeros converts arbitrary numbers into human-oriented Spanish text.
@@ -43,7 +39,7 @@ use Carp;
 
 our @ISA = qw();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use fields qw/ ACENTOS MAYUSCULAS UNMIL HTML DECIMAL SEPARADORES GENERO
                 POSITIVO NEGATIVO FORMATO /;
@@ -127,8 +123,6 @@ String for formatting of real numbers, default value is:
   'con %2d ctms.'
 (see B<real>).
 
-This is DEPRECATED.
-
 =back
 
 =cut
@@ -202,12 +196,6 @@ ACENTOS, MAYUSCULAS, POSITIVO, NEGATIVO and FORMATO.
 
 =head3 Fraction format (FORMATO)
 
-WARNING ** WARNING ** WARNING ** WARNING
-
-   THE FORMATO OPTION IS DEPRECATED
-
-WARNING ** WARNING ** WARNING ** WARNING
-
 FORMAT option is a formatting string like printf, it is used to format the
 fractional part before appending it to the integer part. It has the following
 format specifiers:
@@ -270,15 +258,15 @@ sub real($;$$) {
 	return $self->retval($ent);
 }
 
-=item $n = ordinal($n)
+=head2 $text = $obj->ordinal($num)
 
-Convierte el número $n, como un número ordinal a castellano.  
+Translates an ordinal number ($num) to spanish text, translation
+is performed according to the following object ($obj) settings:
+DECIMAL, SEPARADORES, GENERO, ACENTOS, MAYUSCULAS, POSITIVO and
+NEGATIVO.
 
-La conversión esta afectada por los campos: DECIMAL, SEPARADORES,
-SEXO, ACENTOS y MAYUSCULAS.
-
-Presenta advertencias si el número es negativo y/o si no es un natural >
-0.
+This method croacks if $num <= 0 and carps if $num has a fractional
+part.
 
 =cut
 
@@ -303,7 +291,10 @@ sub ordinal($) {
 
 =head1 INTERNALS
 
-Functions in this seccition are generally not used, but are docummented here for completeness
+Functions in this seccition are generally not used, but are docummented
+here for completeness.
+
+This is not part of the module's API and is subject to change.
 
 =head2 CARDINAL SUPPORT
 
@@ -788,7 +779,10 @@ sub retval($$)
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
+
+=head1 DEPENDENCIES
+
+Perl 5.006, Exporter, Carp
 
 =head1 SEE ALSO
 

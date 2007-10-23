@@ -1,16 +1,27 @@
-Lingua-ES-Numeros version 0.01
+Lingua-ES-Numeros version 0.02
 ==============================
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+NAME
+    Lingua::ES::Numeros - Translates numbers to spanish text
 
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+SYNOPSIS
+       use Lingua::ES::Numeros
+
+       $obj = new Lingua::ES::Numeros ('MAYUSCULAS' => 1)
+       print $obj->Cardinal(124856), "\n";
+       print $obj->Real(124856.531), "\n";
+       $obj->{GENERO} = 'a';
+       print $obj->Ordinal(124856), "\n";
+
+DESCRIPTION
+    Lingua::ES::Numeros converts arbitrary numbers into human-oriented
+    Spanish text.
+
+    This module supports the translation of cardinal, ordinal and, real
+    numbers, the module handles integer numbers up to vigintillions (that's
+    1e120), since Perl does not handle such numbers natively, numbers are
+    kept as text strings because processing does not justify using bigint.
+
 
 INSTALLATION
 
@@ -23,18 +34,13 @@ To install this module type the following:
 
 DEPENDENCIES
 
-This module requires these other modules and libraries:
-
-  blah blah blah
+This module requires Perl 5.6 and Carp
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
-
-Copyright (C) 2007 by opr
+Copyright (C) 2001-2007 by Jose Rey
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
+it under the same terms as Perl itself, either Perl version 5.6 or,
 at your option, any later version of Perl 5 you may have available.
-
 
