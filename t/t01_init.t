@@ -9,11 +9,64 @@ use utf8;
 use strict;
 use warnings;
 
-use Test::More tests => 37;
+use Test::More tests => 81;
 BEGIN { use_ok('Lingua::ES::Numeros') };
 
 #########################
 
+
+sub accesors {
+    my $obj = Lingua::ES::Numeros->new();
+
+    is( $obj->acentos, 1, "accesor acentos" );
+    is( $obj->mayusculas, 0, "accesor mayusculas" );
+    is( $obj->unmil, 1, "accesor unmil" );
+    is( $obj->html, 0, "accesor html" );
+    is( $obj->decimal, '.', "accesor decimal" );
+    is( $obj->separadores, '_', "accesor separadores" );
+    is( $obj->genero, Lingua::ES::Numeros::MALE, "accesor genero" );
+    is( $obj->positivo, '', "accesor positivo" );
+    is( $obj->negativo, 'menos', "accesor negativo" );
+    is( $obj->formato, 'con %02d ctms.', "accesor formato" );
+
+    is( $obj->accents, $obj->acentos, "accesor accents" );
+    is( $obj->uppercase, $obj->mayusculas, "accesor uppercase" );
+    is( $obj->separators, $obj->separadores, "accesor separators" );
+    is( $obj->gender, $obj->genero, "accesor gender" );
+    is( $obj->positive, $obj->positivo, "accesor positive" );
+    is( $obj->negative, $obj->negativo, "accesor negative" );
+    is( $obj->format, $obj->formato, "accesor format" );
+
+    is( $obj->acentos(0), $obj, "accesor acentos" );
+    is( $obj->mayusculas(1), $obj, "accesor mayusculas" );
+    is( $obj->unmil(0), $obj, "accesor unmil" );
+    is( $obj->html(1), $obj, "accesor html" );
+    is( $obj->decimal(","), $obj, "accesor decimal" );
+    is( $obj->separadores("*"), $obj, "accesor separadores" );
+    is( $obj->genero(Lingua::ES::Numeros::FEMALE), $obj, "accesor genero" );
+    is( $obj->positivo('mas'), $obj, "accesor positivo" );
+    is( $obj->negativo('negativo'), $obj, "accesor negativo" );
+    is( $obj->formato('.'), $obj, "accesor formato" );
+
+    is( $obj->acentos, 0, "accesor acentos" );
+    is( $obj->mayusculas, 1, "accesor mayusculas" );
+    is( $obj->unmil, 0, "accesor unmil" );
+    is( $obj->html, 1, "accesor html" );
+    is( $obj->decimal, ',', "accesor decimal" );
+    is( $obj->separadores, '*', "accesor separadores" );
+    is( $obj->genero, Lingua::ES::Numeros::FEMALE, "accesor genero" );
+    is( $obj->positivo, 'mas', "accesor positivo" );
+    is( $obj->negativo, 'negativo', "accesor negativo" );
+    is( $obj->formato, '.', "accesor formato" );
+
+    is( $obj->accents, 0, "accesor accents" );
+    is( $obj->uppercase, 1, "accesor uppercase" );
+    is( $obj->separators, '*', "accesor separators" );
+    is( $obj->gender, Lingua::ES::Numeros::FEMALE, "accesor gender" );
+    is( $obj->positive, 'mas', "accesor positive" );
+    is( $obj->negative, 'negativo', "accesor negative" );
+    is( $obj->format, '.', "accesor format" );
+}
 
 sub parser {
     my $num;
@@ -72,5 +125,5 @@ sub parser {
     }
 }
 
+accesors;
 parser;
-

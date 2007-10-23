@@ -9,17 +9,17 @@ Lingua::ES::Numeros - Translates numbers to spanish text
    $obj = new Lingua::ES::Numeros ('MAYUSCULAS' => 1)
    print $obj->Cardinal(124856), "\n";
    print $obj->Real(124856.531), "\n";
-   $obj->{GENERO} = 'a';
+   $obj->{GENERO} = FEMALE;
    print $obj->Ordinal(124856), "\n";
 
 =head1 DESCRIPTION
-
-Lingua::ES::Numeros converts arbitrary numbers into human-oriented Spanish text.
 
 This module supports the translation of cardinal, ordinal and, real numbers, the
 module handles integer numbers up to vigintillions (that's 1e120), since Perl
 does not handle such numbers natively, numbers are kept as text strings because
 processing does not justify using bigint.
+
+Currently Lingua::ES::Numeros handles numbers up to 1e127-1 (999999 vigintillions).
 
 =cut
 
@@ -39,93 +39,147 @@ use Carp;
 
 our @ISA = qw();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
+
+our @EXPORT = qw( MALE FEMALE NEUTRAL );
+
+our @EXPORT_OK = qw( MALE FEMALE NEUTRAL );
+
+use constant {
+    MALE    => 'o',
+    FEMALE  => 'a',
+    NEUTRAL => '' };
 
 use fields qw/ ACENTOS MAYUSCULAS UNMIL HTML DECIMAL SEPARADORES GENERO
                 POSITIVO NEGATIVO FORMATO /;
 
 =head1 METHODS
 
-=head2 $obj = Lingua::ES::Numeros->new(%options)
+=head2 CONSTRUCTOR: new
 
-Creates a new translation object. Options mey be a list of the
-following KEY => VALUE pairs:
+To create a new Lingua::ES::Numeros, use the B<new> class method. This method can
+receive as parameters any of the above mentioned fields. 
+
+Examples:
+
+      use Lingua::ES::Numeros;
+      
+      # Use the fields' default values
+      $obj = new Lingua::ES::Numeros; 
+      
+      # Specifies the values of some of them
+      $obj = Lingua::ES::Numeros->new( ACENTOS => 0, 
+                MAYUSCULAS => 1, GENERO => FEMALE,
+			    DECIMAL => ',', SEPARADORES=> '"_' );
 
 =over 4
 
 =item DECIMAL
 
-Decimal point delimiter, a single character used to delimit integer 
-and fraction parts of the number. Default value is ".".
+Specifies the character string that will be used to separate the integer
+from the fractional part of the number to convert. The default value for
+DECIMAL is '.'
 
 =item SEPARADORES
 
-Delimiters ignored while parsing numbers. Characters in this set are
-deleted before number parsing, by default SEPARADORES is the following
-string: '_'
+Character string including all of the format characters used when
+representing a number. All of the characters in this string will be ignored
+by the parser when analyzing the number. The default value for SEPARADORES
+is '_'
 
 =item ACENTOS
 
-If ACENTOS is true then number names will be ortographically correct
-with accent characters included, otherwise accented letters will be 
-translated to USACII characters. This is true by default.
+Affects the way in which the generated string for the translated numbers is
+given; if it is false, the textual representation will not have any
+accented characters. The default value for this field is true (with
+accents).
 
 =item MAYUSCULAS
 
-Numbers are translated to all uppercase if this is true, otherwise the
-text will be all lowercase which is the default.
+If this is a true value, the textual representation of the number will be
+an uppercase character string. The default value for this field is false
+(lowercase).
 
 =item HTML
 
-Returns HTML text (normal text with HTML entities) if true, defaults to
-false.
+If this is a true value, the textual representation of the number will be a
+HTML-valid string character (accents will be represented by their
+respective HTML entities). The default value is 0 (text).
 
 =item GENERO
 
-Sets the gender of the numbers, it may have the folowing values:
-  'a'   female gender
-  'o'   male gender
-  ''    no gender (neutral gender)
+The gender of the numbers can be MALE, FEMALE or NEUTRAL, respectively for
+femenine, masculine or neutral numbers. The default value is MALE.
 
-The following table shows the efect of gender on Cardinal and
-Ordinal numbers:
+The following table shows the efect of GENDER on translation of Cardinal
+and Ordinal numbers:
 
- +---+--------------------+-----------------------------+
- |N  |     CARDINAL       |          ORDINAL            |
- |u  +------+------+------+---------+---------+---------+
- |m  | 'o'  | 'a'  |  ''  |   'o'   |   'a'   |   ''    |
- +---+------+------+------+---------+---------+---------+
- | 1 | uno  | una  | un   | primero | primera | primer  |
- | 2 | dos  | dos  | dos  | segundo | segunda | segundo |
- | 3 | tres | tres | tres | tercero | tercera | tercer  |
- +---+------+------+------+---------+---------+---------+
+ +---+---------------------+-----------------------------+
+ | N |     CARDINAL        |          ORDINAL            |
+ | u +------+------+-------+---------+---------+---------+
+ | m | MALE |FEMALE|NEUTRAL|  MALE   |  FEMALE | NEUTRAL |
+ +---+------+------+-------+---------+---------+---------+
+ | 1 | uno  | una  | un    | primero | primera | primer  |
+ | 2 | dos  | dos  | dos   | segundo | segunda | segundo |
+ | 3 | tres | tres | tres  | tercero | tercera | tercer  |
+ +---+------+------+-------+---------+---------+---------+
+
+=item SEXO
+
+Deprecated option only for backward compatibility, use GENERO instead.
 
 =item UNMIL
 
-If true (the defaut), 1000 will be translated "un mil", otherwise it
-will be translated to the more informal "mil".
+This field affects only the translation of cardinal numbers. When it is a true
+value, the number 1000 is translated to 'un mil' (one thousand), otherwise it
+is translated to the more colloquial 'mil' (thousand). The default value is 1.
 
 =item NEGATIVO
 
-Label for negative numbers, this is prepended to negative numbers,
-default value is "menos". For example: translation of -5 will yield
-"menos cinco".
+Contains the character string with the text to which the negative sign (-) will
+be translated with. Defaults to 'menos'.
+
+For example: default translation of -5 will yield "menos cinco".
 
 =item POSITIVO
 
-Label for positive numbers, this is prepended to positive numbers,
-default value is "" (blank). For example: translation of 5 will yield
-"cinco".
+Contains the character string with the text to which the positive sign will be
+translated with. Defaults to ''.
+
+For example: default translation of 5 will yield "cinco".
 
 =item FORMATO
 
-String for formatting of real numbers, default value is:
-  'con %2d ctms.'
-(see B<real>).
+A character string specifying how the decimals of a real number are to be 
+translated. Its default value is 'con %2d ctms.' (see the B<real> method)
 
 =back
 
+=head3 Aliases
+
+By popular demand I have added the following aliases for the options:
+
+    Alias        Natural Name
+    --------------------------
+    ACCENTS       ACENTOS          
+    UPPERCASE     MAYUSCULAS  
+    SEPARATORS    SEPARADORES 
+    GENDER        GENERO      
+    POSITIVE      POSITIVO    
+    NEGATIVE      NEGATIVO    
+    FORMAT        FORMATO
+
 =cut
+
+my %opt_alias = qw(
+    ACCENTS     ACENTOS          
+    UPPERCASE   MAYUSCULAS  
+    SEPARATORS  SEPARADORES 
+    GENDER      GENERO      
+    POSITIVE    POSITIVO    
+    NEGATIVE    NEGATIVO    
+    FORMAT      FORMATO );
+
 
 my %new_defaults = (
     ACENTOS     => 1,
@@ -134,7 +188,7 @@ my %new_defaults = (
     HTML        => 0,
     DECIMAL     => '.',
     SEPARADORES => '_',
-    GENERO      => 'o',
+    GENERO      => MALE,
     POSITIVO    => '',
     NEGATIVO    => 'menos',
     FORMATO     => 'con %02d ctms.', );
@@ -156,7 +210,22 @@ sub new {
     return $self;
 }
 
-=head2 $text = $obj->cardinal($num)
+=head2 cardinal
+
+SYNOPSIS:
+  $text = $obj->cardinal($num)
+
+=head3 Parameters
+
+=over 4
+
+=item $num
+
+the number.
+
+=back
+
+=head3 Description
 
 Translates a cardinal number ($num) to spanish text, translation
 is performed according to the following object ($obj) settings:
@@ -164,6 +233,10 @@ DECIMAL, SEPARADORES, SEXO, ACENTOS, MAYUSCULAS, POSITIVO and
 NEGATIVO.
 
 This method ignores any fraction part of the number ($num).
+
+=head3 Return Value
+
+Textual representation of the number as a string
 
 =cut
 
@@ -182,7 +255,10 @@ sub cardinal($) {
 }
 
 
-=head2 $text = real($n; $genf, $genm)
+=head2 real
+
+SYNOPSIS:
+  $text = real($n; $genf, $genm)
 
 Translates the real number ($n) to spanish text.
 
@@ -258,7 +334,22 @@ sub real($;$$) {
 	return $self->retval($ent);
 }
 
-=head2 $text = $obj->ordinal($num)
+=head2 ordinal
+
+SYNOPSIS:
+  $text = $obj->ordinal($num)
+
+=head3 Parameters
+
+=over 4
+
+=item $num
+
+the number.
+
+=back
+
+=head3 Description
 
 Translates an ordinal number ($num) to spanish text, translation
 is performed according to the following object ($obj) settings:
@@ -267,6 +358,10 @@ NEGATIVO.
 
 This method croacks if $num <= 0 and carps if $num has a fractional
 part.
+
+=head3 Return Value
+
+Textual representation of the number as a string
 
 =cut
 
@@ -289,9 +384,62 @@ sub ordinal($) {
 }
 
 
+=head2 Accessors
+
+Each of the options has a setter/getter with the name of the option in
+lowercase, all the accessors have the following sintax:
+
+=head3 Getters
+
+  $obj->name_of_option()
+
+Returns the current value of the option.
+
+=head3 Setters
+
+  $obj->name_of_option( $value )
+
+Sets the option to $value and returns $obj
+
+=head3 List of accessors
+
+  $obj->accents
+  $obj->acentos          
+  $obj->uppercase
+  $obj->mayusculas  
+  $obj->unmil
+  $obj->html
+  $obj->decimal
+  $obj->separators
+  $obj->separadores 
+  $obj->gender
+  $obj->genero      
+  $obj->positive
+  $obj->positivo    
+  $obj->negative
+  $obj->negativo    
+  $obj->format
+  $obj->formato
+
+=cut
+
+{ # Build the accessors
+
+    my %names = ( (map { $_=>$_ } keys %new_defaults), %opt_alias );
+    while (my ($opt, $alias) = each %names) {
+        $opt = lc $opt;
+        no strict 'refs';
+        *$opt = sub {
+            my $self = shift;
+            return $self->{$alias} unless @_;
+            $self->{$alias} = shift;
+            return $self }
+    }
+}
+
 =head1 INTERNALS
 
-Functions in this seccition are generally not used, but are docummented
+Functions in this secction are generally not used, but are docummented
 here for completeness.
 
 This is not part of the module's API and is subject to change.
@@ -326,13 +474,35 @@ my @cardinal_megas = ( "", qw/ m b tr cuatr quint sext sept oct non dec undec
 my $MAX_DIGITS = 6 * @cardinal_megas;
 
 
-=head3 cardinal_e2($n, $nn)
+=head3 cardinal_e2
+
+=over 4
+
+=item SYNOPSIS
+
+  cardinal_e2($n, $nn)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $nn
+
+word stack.
+
+=back
+
+=item DESCRIPTION
 
 This procedure takes $n (an integer in the range [0 .. 99], not verified) and
 adds the numbers text translation to $nn (a word stack), on a word by word basis.
 If $n == 0 nothing is pushed into $nn.
 
-Returns nothing.
+=back
 
 =cut
 
@@ -347,13 +517,35 @@ sub cardinal_e2($$) {
 }
 
 
-=head3 cardinal_e3($n, $nn)
+=head3 cardinal_e3
+
+=over 4
+
+=item SYNOPSIS
+
+  cardinal_e3($n, $nn)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $nn
+
+word stack.
+
+=back
+
+=item DESCRIPTION
 
 This procedure takes $n (an integer in the range [0 .. 99], not verified) and
 adds the numbers text translation to $nn (a word stack), on a word by word basis.
 If $n == 0 nothing is pushed into $nn.
 
-Returns nothing.
+=back
 
 =cut
 
@@ -367,22 +559,48 @@ sub cardinal_e3($$) {
 }
 
 
-=head3 cardinal_e6($n, $nn, $mag, $un_mil, $postfix)
+=head3 cardinal_e6
 
-Parameters:
-  $n        the number between 0 and 999999 (not verified).
-  $nn:      word stack.
-  $mag:     magnitude of the number 1 for millions, 2 for billions,
-            etc.
-  $un_mil:  if true 1000 is translated as "un mil" otherwise "mil"
-  $postfix: array representing plural & singular magnitude of the
-            number, in this order.
+=over 4
+
+=item SYNOPSIS
+
+  cardinal_e6($n, $nn, $mag, $un_mil, $postfix)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $nn
+
+word stack.
+
+=item $mag
+
+magnitude of the number 1 for millions, 2 for billions, etc.
+
+=item $un_mil
+
+if true 1000 is translated as "un mil" otherwise "mil"
+
+=item $postfix
+
+array representing plural & singular magnitude of the number, in this
+order.
+
+=back
+
+=item DESCRIPTION
 
 This procedure takes $n, and pushes the numbers text translation into $nn,
 on a word by word basis, with the proper translated magnitude.  If $n == 0
 nothing is pushed into $nn.
 
-Returns nothing.
+=back
 
 =cut
 
@@ -399,21 +617,49 @@ sub cardinal_e6($$$$$) {
 }
 
 
-=head3 cardinal_generic($n, $exp, $fmag, $gen)
+=head3 cardinal_generic
 
-Parameters:
-  $n        the number.
-  $exp:     exponent.
-  $fmag:    closure to format the 6 digits groups.
-  $gen:     gender of the number:
-                'a' for female gender (1 -> una).
-                'o' for male gender (1 -> uno).
-                ''  for neutral gender (1 -> un).
+=over 4
+
+=item SYNOPSIS
+
+  cardinal_generic($n, $exp, $fmag, $gen)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $exp
+
+exponent.
+
+=item $fmag
+
+closure to format the 6 digits groups.
+
+=item $gen
+
+gender of the magnitude (optional defaults to NEUTRAL):
+    FEMALE  for female gender (1 -> una).
+    MALE    for male gender (1 -> uno).
+    NEUTRAL for neutral gender (1 -> un).
+
+=back
+
+=item DESCRIPTION
 
 This function translate the natural number $n to spanish words, adding 
 gender where needed.
 
-Returns the translation of $n to spanish text as a list of words.
+=item RETURN VALUE
+
+Translation of $n to spanish text as a list of words.
+
+=back
 
 =cut
 
@@ -432,16 +678,40 @@ sub cardinal_generic($$$$) {
 }
 
 
-=head3 cardinal_simple($n, $exp, $un_mil; $gen)
+=head3 cardinal_simple
 
-Parameters:
-  $n        the number.
-  $exp:     exponent.
-  $un_mil:  if true 1000 is translated as "un mil" otherwise "mil"
-  $gen:     gender of the number (optional with default value ''):
-                'a' for female gender (1 -> una).
-                'o' for male gender (1 -> uno).
-                ''  for neutral gender (1 -> un).
+=over 4
+
+=item SYNOPSIS
+
+  cardinal_simple($n, $exp, $un_mil; $gen)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $exp
+
+exponent.
+
+=item $un_mil
+
+if true 1000 is translated as "un mil" otherwise "mil"
+
+=item $gen
+
+gender of the magnitude (optional defaults to NEUTRAL):
+    FEMALE  for female gender (1 -> una).
+    MALE    for male gender (1 -> uno).
+    NEUTRAL for neutral gender (1 -> un).
+
+=back
+
+=item DESCRIPTION
 
 This function translate the natural number $n to spanish words, adding 
 gender where needed.
@@ -449,7 +719,11 @@ gender where needed.
 This procedure just builds a closure with format information, to call
 cardinal_e6, and then calls cardinal_generic to do the work.
 
-Returns the translation of $n to spanish text as a list of words.
+=item RETURN VALUE
+
+Translation of $n to spanish text as a list of words.
+
+=back
 
 =cut
 
@@ -457,26 +731,62 @@ sub cardinal_simple($$$;$) {
 	my ($n, $exp, $un_mil, $gen) = @_;
 
     $un_mil = $un_mil ? 1 : 0;
-    $gen = '' unless $gen;
+    $gen = NEUTRAL unless $gen;
     my $format = sub {
         cardinal_e6($_[0], $_[1], $_[2], $un_mil, [ 'illones', 'illón' ]) };
     cardinal_generic($n, $exp, $format, $gen)
 }
 
 
-=head3 fraccion_mag_prefix($mag, $gp)
+=head3 fraccion_mag_prefix
 
-Parameters:
-  $mag:     magnitude of the number 1 for millionths, 2 for billionths,
-            etc.
-  $gp:      gender and plural of the number ('as' is female plural,
-            'o' is male singular), $gp=$gender . $plural
+=over 4
+
+=item SYNOPSIS
+
+  fraccion_mag_prefix($mag, $gp)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $exp
+
+exponent.
+
+=item $mag
+
+magnitude of the number 1 for millionths, 2 for billionths, etc.
+
+=item $gp
+
+gender and plural of the number, is the concatenation of gender and plural
+gender must be one of FEMALE, MALE or NEUTRAL, and plural must be '' for
+singular and 's' for plural.
+
+Note that NEUTRAL + plural is a nonsense.
+
+=item $ngen
+
+gender of the number (same values as $gen).
+
+=back
+
+=item DESCRIPTION
 
 This function returns the name of the magnitude of a fraction, $mag 
 is the number of decimal digits. For example 0.001 has $mag == 3 and 
-translates to "milesimos" if $gp is 'os'.
+translates to "milesimos" if $gp is (MALE . 's').
 
-Returns the translation of $n to spanish text as a string.
+=item RETURN VALUE
+
+Translation of $n to spanish text as a string.
+
+=back
 
 =cut
 
@@ -494,17 +804,44 @@ sub fraccion_mag_prefix($$) {
 }
 
 
-=head3 fraccion_simple($n, $exp, $un_mil, $gen; $ngen)
+=head3 fraccion_simple
 
-Parameters:
-  $n        the number.
-  $exp:     exponent.
-  $un_mil:  if true 1000 is translated as "un mil" otherwise "mil"
-  $gen:     gender of the magnitude:
-                'a' for female gender (1 -> una).
-                'o' for male gender (1 -> uno).
-                ''  for neutral gender (1 -> un).
-  $ngen:    gender of the number (same values as $gen).
+=over 4
+
+=item SYNOPSIS
+
+  fraccion_simple($n, $exp, $un_mil, $gen; $ngen)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $exp
+
+exponent.
+
+=item $un_mil
+
+if true 1000 is translated as "un mil" otherwise "mil"
+
+=item $gen
+
+gender of the magnitude (optional defaults to NEUTRAL):
+    FEMALE  for female gender (1 -> primera).
+    MALE    for male gender (1 -> primero).
+    NEUTRAL for neutral gender (1 -> primer).
+
+=item $ngen
+
+gender of the number (same values as $gen).
+
+=back
+
+=item DESCRIPTION
 
 This function translate the fraction $n to spanish words, adding 
 gender where needed.
@@ -512,7 +849,11 @@ gender where needed.
 This procedure just builds a closure with format information, to call
 cardinal_e6, and then calls cardinal_generic to do the work.
 
-Returns the translation of $n to spanish text as a list of words.
+=item RETURN VALUE
+
+Translation of $n to spanish text as a list of words.
+
+=back
 
 =cut
 
@@ -549,13 +890,35 @@ my @ordinal_dec = qw/ 0 1 vi tri cuadra quicua sexa septua octo nona /;
 my @ordinal_cen = qw/ 0 c duoc tric cuadring quing sexc septig octing noning /;
 
 
-=head3 ordinal_e2($n, $nn)
+=head3 ordinal_e2
+
+=over 4
+
+=item SYNOPSIS
+
+  ordinal_e2($n, $nn)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $nn
+
+word stack.
+
+=back
+
+=item DESCRIPTION
 
 This procedure takes $n (an integer in the range [0 .. 99], not verified) and
 adds the numbers text translation to $nn (a word stack), on a word by word basis.
 If $n == 0 nothing is pushed into $nn.
 
-Returns nothing.
+=back
 
 =cut
 
@@ -579,13 +942,35 @@ sub ordinal_e2($$) {
 }
 
 
-=head3 ordinal_e3($n, $nn)
+=head3 ordinal_e3
+
+=over 4
+
+=item SYNOPSIS
+
+  ordinal_e3($n, $nn)
+
+=item Parameters
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $nn
+
+word stack.
+
+=back
+
+=item DESCRIPTION
 
 This procedure takes $n (an integer in the range [0 .. 999], not verified) and
 adds the numbers text translation to $nn (a word stack), on a word by word basis.
 If $n == 0 nothing is pushed into $nn.
 
-Returns nothing.
+=back
 
 =cut
 
@@ -598,19 +983,39 @@ sub ordinal_e3($$) {
 }
 
 
-=head3 ordinal_e6($n, $nn, $mag, $un_mil, $postfix)
+=head3 ordinal_e6
 
-Parameters:
-  $n        the number between 0 and 999999 (not verified).
-  $nn:      word stack.
-  $mag:     magnitude of the number 1 for millions, 2 for billions,
-            etc.
+=over 4
+
+=item SYNOPSIS
+
+  ordinal_e6($n, $nn, $mag, $un_mil, $postfix)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $nn
+
+word stack.
+
+=item $mag
+
+magnitude of the number 1 for millions, 2 for billions, etc.
+
+=back
+
+=item DESCRIPTION
 
 This procedure takes $n, and pushes the numbers text translation into $nn,
 on a word by word basis, with the proper translated magnitude.  If $n == 0
 nothing is pushed into $nn.
 
-Returns nothing.
+=back
 
 =cut
 
@@ -631,16 +1036,40 @@ sub ordinal_e6($$$) {
 }
 
 
-=head3 ordinal_simple($n, $exp; $gen)
+=head3 ordinal_simple
 
-Parameters:
-  $n        the number.
-  $exp:     exponent.
-  $un_mil:  if true 1000 is translated as "un mil" otherwise "mil"
-  $gen:     gender of the magnitude (optional defaults to ''):
-                'a' for female gender (1 -> primera).
-                'o' for male gender (1 -> primero).
-                ''  for neutral gender (1 -> primer).
+=over 4
+
+=item SYNOPSIS
+
+  ordinal_simple($n, $exp; $gen)
+
+=item PARAMETERS
+
+=over 4
+
+=item $n
+
+the number.
+
+=item $exp
+
+exponent.
+
+=item $un_mil
+
+if true 1000 is translated as "un mil" otherwise "mil"
+
+=item $gen
+
+gender of the magnitude (optional defaults to NEUTRAL):
+    FEMALE  for female gender (1 -> primera).
+    MALE    for male gender (1 -> primero).
+    NEUTRAL for neutral gender (1 -> primer).
+
+=back
+
+=item DESCRIPTION
 
 This function translate the fraction $n to spanish words, adding 
 gender where needed.
@@ -648,7 +1077,11 @@ gender where needed.
 This procedure just builds a closure with format information, to call
 ordinal_e6, and then calls ordinal_generic to do the work.
 
-Returns the translation of $n to spanish text as a list of words.
+=item RETURN VALUE
+
+Translation of $n to spanish text as a list of words.
+
+=back
 
 =cut
 
@@ -680,7 +1113,7 @@ sub ordinal_simple($$;$) {
 
     unless ( $gen ) {
         $group[0] =~ s/r_$/r/;          # Ajustar neutros en 1er, 3er, etc.
-        $gen = 'o' }
+        $gen = MALE }
     s/_/$gen/g for @group;
     reverse @group;
 }
@@ -690,23 +1123,66 @@ sub ordinal_simple($$;$) {
 
 Everithing not fitting elsewere
 
-=cut
 
-=head3 parse_num($num, $dec, $sep)
+=head3 parse_num
 
-Parameters:
-  $num:     the number.
-  $dec:     decimal separator (tipically ',' or '.').
-  $sep:     separator characters ignored by the parser.
+=over 4
+
+=item SYNOPSIS
+
+  parse_num($num, $dec, $sep)
+
+Decomposes the number in its constitutive parts, and returns them in a list:
+
+   use Lingua::ES::Numeros;
+   ($sgn, $ent, $frc, $exp) = parse_num('123.45e10', '.', '",');
+
+=item PARAMETERS
+
+=over 4
+
+=item $num
+
+the number to decompose
+
+=item $dec
+
+decimal separator (tipically ',' or '.').
+
+=item $sep
+
+separator characters ignored by the parser, usually to mark thousands, millions, etc..
+
+=back
+
+=item RETURN VALUE
 
 This function parses a general number and returns a list of 4 
 elements:
-  $sgn:     sign of the number: -1 if negative, 1 otherwise
-  $int:     integer part of the number
-  $frc:     decimal (fraction) part of the number
-  $exp:     exponent of the number
+
+=over 4
+
+=item $sgn
+
+sign of the number: -1 if negative, 1 otherwise
+
+=item $int
+
+integer part of the number
+
+=item $frc
+
+decimal (fraction) part of the number
+
+=item $exp
+
+exponent of the number
+
+=back
 
 Croaks if there is a syntax error.
+
+=back
 
 =cut
 
@@ -752,12 +1228,22 @@ sub parse_num($$$) {
 }
 
 
-=head3 $obj->retval($value)
+=head3 retval
+
+=over 4
+
+=item SYNOPSIS
+
+  $obj->retval($value)
+
+=item DESCRIPTION
 
 Utility method to adjust return values, transforms text 
 following the options: ACENTOS, MAYUSCULAS y HTML.
 
 Returns the adjusted $value.
+
+=back
 
 =cut
 
