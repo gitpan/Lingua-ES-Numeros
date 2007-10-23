@@ -1,5 +1,6 @@
 Revision history for Perl extension Lingua::ES::Numeros.
 
-0.01  Sun Sep 16 10:51:55 2001
-	- original version; created by h2xs 1.19
+0.01  Tue Oct 23 15:49:18 2007
+	- original version; created by h2xs 1.23 with options
+		-AX --skip-exporter --use-new-tests -n Lingua::ES::Numeros
 

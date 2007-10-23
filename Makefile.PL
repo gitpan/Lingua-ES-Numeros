@@ -1,12 +1,12 @@
+use 5.008008;
 use ExtUtils::MakeMaker;
-BEGIN { require 5.0 }
-
+# See lib/ExtUtils/MakeMaker.pm for details of how to influence
+# the contents of the Makefile that is written.
 WriteMakefile(
-	'NAME'		=> 'Lingua::ES::Numeros',
-	'VERSION_FROM'	=> "Numeros.pm",
-	'ABSTRACT'	=> 'Convierte números cardinales en texto castellano',
-	'AUTHOR'	=> 'Jose Rey (jrey@mercared.com)',
-	'PM'		=> {
-		'Numeros.pm' => '${INST_LIBDIR}/Numeros.pm'
-		}
+    NAME              => 'Lingua::ES::Numeros',
+    VERSION_FROM      => 'lib/Lingua/ES/Numeros.pm', # finds $VERSION
+    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
+    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
+      (ABSTRACT_FROM  => 'lib/Lingua/ES/Numeros.pm', # retrieve abstract from module
+       AUTHOR         => 'opr <opr@>') : ()),
 );
