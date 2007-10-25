@@ -39,16 +39,21 @@ use Carp;
 
 our @ISA = qw();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 our @EXPORT = qw( MALE FEMALE NEUTRAL );
 
 our @EXPORT_OK = qw( MALE FEMALE NEUTRAL );
 
-use constant {
-    MALE    => 'o',
-    FEMALE  => 'a',
-    NEUTRAL => '' };
+# Perl 5.6 fails with this
+#use constant {
+#    MALE    => 'o',
+#    FEMALE  => 'a',
+#    NEUTRAL => '' };
+
+use constant MALE    => 'o';
+use constant FEMALE  => 'a';
+use constant NEUTRAL => '';
 
 use fields qw/ ACENTOS MAYUSCULAS UNMIL HTML DECIMAL SEPARADORES GENERO
                 POSITIVO NEGATIVO FORMATO /;
