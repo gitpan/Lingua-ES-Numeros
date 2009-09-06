@@ -5,8 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'Lingua::ES::Numeros',
     VERSION_FROM      => 'lib/Lingua/ES/Numeros.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
-    ($] >= 5.006 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/Lingua/ES/Numeros.pm', # retrieve abstract from module
-       AUTHOR         => 'opr <opr@>') : ()),
+    PREREQ_PM         => {Carp => 0},
+    ABSTRACT_FROM     => 'lib/Lingua/ES/Numeros.pm', # retrieve abstract from module
+    AUTHOR            => 'Jose Rey <jrey@cpan.org>',
 );

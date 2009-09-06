@@ -1,3 +1,4 @@
+
 =head1 NAME
 
 Lingua::ES::Numeros - Translates numbers to spanish text
@@ -24,8 +25,7 @@ Currently Lingua::ES::Numeros handles numbers up to 1e127-1 (999999 vigintillion
 =cut
 
 #######################################################################
-# Jose Luis Rey Barreira (C) 2001-2007
-# Under GPL license [ http://www.gnu.org ]
+# Jose Luis Rey Barreira (C) 2001-2009
 #######################################################################
 
 package Lingua::ES::Numeros;
@@ -39,7 +39,7 @@ use Carp;
 
 our @ISA = qw();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 our @EXPORT = qw( MALE FEMALE NEUTRAL );
 
@@ -56,7 +56,7 @@ use constant FEMALE  => 'a';
 use constant NEUTRAL => '';
 
 use fields qw/ ACENTOS MAYUSCULAS UNMIL HTML DECIMAL SEPARADORES GENERO
-                POSITIVO NEGATIVO FORMATO /;
+    POSITIVO NEGATIVO FORMATO /;
 
 =head1 METHODS
 
@@ -177,14 +177,13 @@ By popular demand I have added the following aliases for the options:
 =cut
 
 my %opt_alias = qw(
-    ACCENTS     ACENTOS          
-    UPPERCASE   MAYUSCULAS  
-    SEPARATORS  SEPARADORES 
-    GENDER      GENERO      
-    POSITIVE    POSITIVO    
-    NEGATIVE    NEGATIVO    
+    ACCENTS     ACENTOS
+    UPPERCASE   MAYUSCULAS
+    SEPARATORS  SEPARADORES
+    GENDER      GENERO
+    POSITIVE    POSITIVO
+    NEGATIVE    NEGATIVO
     FORMAT      FORMATO );
-
 
 my %new_defaults = (
     ACENTOS     => 1,
@@ -196,20 +195,22 @@ my %new_defaults = (
     GENERO      => MALE,
     POSITIVO    => '',
     NEGATIVO    => 'menos',
-    FORMATO     => 'con %02d ctms.', );
-
+    FORMATO     => 'con %02d ctms.',
+);
 
 sub new {
     my $self = shift;
-    unless (ref $self) {
-        $self = fields::new( $self );
+    unless ( ref $self ) {
+        $self = fields::new($self);
     }
+
     #%$self = (%new_defaults, @_);
-    {   # Compatibility conversion of SEXO into GENERO
-        my %opts = (%new_defaults, @_);
+    {    # Compatibility conversion of SEXO into GENERO
+        my %opts = ( %new_defaults, @_ );
         if ( $opts{'SEXO'} ) {
             $opts{'GENERO'} = $opts{'SEXO'};
-            delete $opts{'SEXO'} }
+            delete $opts{'SEXO'};
+        }
         %$self = %opts
     }
     return $self;
@@ -245,20 +246,20 @@ Textual representation of the number as a string
 
 =cut
 
-
 sub cardinal($) {
-	my $self = shift;
-    my $num = shift;
-	my ($sgn, $ent, $frc, $exp)= parse_num($num, $self->{'DECIMAL'}, $self->{'SEPARADORES'});
-    my @words = cardinal_simple($ent, $exp, $self->{'UNMIL'}, $self->{'GENERO'});
-    if ( @words ) {
+    my $self = shift;
+    my $num  = shift;
+    my ( $sgn, $ent, $frc, $exp ) = parse_num( $num, $self->{'DECIMAL'}, $self->{'SEPARADORES'} );
+    my @words = cardinal_simple( $ent, $exp, $self->{'UNMIL'}, $self->{'GENERO'} );
+    if (@words) {
         unshift @words, $self->{'NEGATIVO'} if $sgn < 0 and $self->{'NEGATIVO'};
         unshift @words, $self->{'POSITIVO'} if $sgn > 0 and $self->{'POSITIVO'};
-        $self->retval( join(" ", @words) ) }
+        $self->retval( join( " ", @words ) );
+    }
     else {
-        $self->retval( 'cero' ) }
+        $self->retval('cero');
+    }
 }
-
 
 =head2 real
 
@@ -303,40 +304,49 @@ CON 04 ctms.'
 =cut
 
 sub real($;$$) {
-	my $self = shift;
-    my ($num, $genf, $genm) = @_;
-	my ($sgn, $ent, $frc, $exp)= parse_num($num, $self->{'DECIMAL'}, $self->{'SEPARADORES'});
-	
+    my $self = shift;
+    my ( $num, $genf, $genm ) = @_;
+    my ( $sgn, $ent, $frc, $exp ) = parse_num( $num, $self->{'DECIMAL'}, $self->{'SEPARADORES'} );
+
     my $gen = $self->{'GENERO'};
-    $genf = $gen unless defined $genf;
+    $genf = $gen  unless defined $genf;
     $genm = $genf unless defined $genm;
 
-	# Convertir la parte entera ajustando el sexo
+    # Convertir la parte entera ajustando el sexo
     #my @words = cardinal_simple($ent, $exp, $self->{'UNMIL'}, $gen);
 
-	# Traducir la parte decimal de acuerdo al formato
-	for ($self->{'FORMATO'}) {
-		/%([0-9]*)s/ && do { 
-			# Textual, se traduce según el genero
-            $frc = substr('0' x $exp . $frc, 0, $1) if $1;
-            $frc = join(" ", fraccion_simple($frc, $exp, $self->{'UNMIL'}, $genf, $genm));
-			$frc = $frc ? sprintf($self->{'FORMATO'}, $frc) : '';
-			last };
-		/%([0-9]*)d/ && do {
-			# Numérico, se da formato a los dígitos
-			$frc = substr('0' x $exp . $frc, 0, $1);
-			$frc = sprintf($self->{'FORMATO'}, $frc);
-			last };
-		do {
-			# Sin formato, se ignoran los decimales
-			$frc = ''; 
-			last }; }
-	if ($ent) {
-        $ent = $self->cardinal( ($sgn < 0 ? '-' : '+') . $ent) } 
-	else {
-		$ent = 'cero' }
-	$ent .= ' ' . $frc if $ent and $frc;
-	return $self->retval($ent);
+    # Traducir la parte decimal de acuerdo al formato
+    for ( $self->{'FORMATO'} ) {
+        /%([0-9]*)s/ && do {
+
+            # Textual, se traduce según el genero
+            $frc = substr( '0' x $exp . $frc, 0, $1 ) if $1;
+            $frc = join( " ", fraccion_simple( $frc, $exp, $self->{'UNMIL'}, $genf, $genm ) );
+            $frc = $frc ? sprintf( $self->{'FORMATO'}, $frc ) : '';
+            last;
+        };
+        /%([0-9]*)d/ && do {
+
+            # Numérico, se da formato a los dígitos
+            $frc = substr( '0' x $exp . $frc, 0, $1 );
+            $frc = sprintf( $self->{'FORMATO'}, $frc );
+            last;
+        };
+        do {
+
+            # Sin formato, se ignoran los decimales
+            $frc = '';
+            last;
+        };
+    }
+    if ($ent) {
+        $ent = $self->cardinal( ( $sgn < 0 ? '-' : '+' ) . $ent );
+    }
+    else {
+        $ent = 'cero';
+    }
+    $ent .= ' ' . $frc if $ent and $frc;
+    return $self->retval($ent);
 }
 
 =head2 ordinal
@@ -371,23 +381,22 @@ Textual representation of the number as a string
 =cut
 
 sub ordinal($) {
-	my $self = shift;
-    my $num = shift;
-	my ($sgn, $ent, $frc, $exp)= parse_num($num, $self->{'DECIMAL'}, $self->{'SEPARADORES'});
-	
-	croak "Ordinal negativo" if $sgn < 0;
-	carp "Ordinal con decimales" if $frc;
+    my $self = shift;
+    my $num  = shift;
+    my ( $sgn, $ent, $frc, $exp ) = parse_num( $num, $self->{'DECIMAL'}, $self->{'SEPARADORES'} );
 
-	if ($ent =~ /^0*$/) {
-		carp "Ordinal cero";
-		return '';
-	}
+    croak "Ordinal negativo"     if $sgn < 0;
+    carp "Ordinal con decimales" if $frc;
 
-    my $text = join(" ", ordinal_simple($ent, $exp, $self->{'GENERO'}));
+    if ( $ent =~ /^0*$/ ) {
+        carp "Ordinal cero";
+        return '';
+    }
 
-	return $self->retval($text);
+    my $text = join( " ", ordinal_simple( $ent, $exp, $self->{'GENERO'} ) );
+
+    return $self->retval($text);
 }
-
 
 =head2 Accessors
 
@@ -428,17 +437,18 @@ Sets the option to $value and returns $obj
 
 =cut
 
-{ # Build the accessors
+{    # Build the accessors
 
-    my %names = ( (map { $_=>$_ } keys %new_defaults), %opt_alias );
-    while (my ($opt, $alias) = each %names) {
+    my %names = ( ( map { $_ => $_ } keys %new_defaults ), %opt_alias );
+    while ( my ( $opt, $alias ) = each %names ) {
         $opt = lc $opt;
         no strict 'refs';
         *$opt = sub {
             my $self = shift;
             return $self->{$alias} unless @_;
             $self->{$alias} = shift;
-            return $self }
+            return $self;
+            }
     }
 }
 
@@ -461,23 +471,26 @@ Construction of cardinal numbers
 #
 ####################################################################
 
-my @cardinal_30 = qw/ cero un dós tres cuatro cinco seis siete ocho nueve diez
+my @cardinal_30 = qw/ cero un dos tres cuatro cinco seis siete ocho nueve diez
     once doce trece catorce quince dieciséis diecisiete dieciocho diecinueve
-	veinte veintiun veintidós veintitrés veinticuatro veinticinco veintiséis
+    veinte veintiun veintidós veintitrés veinticuatro veinticinco veintiséis
     veintisiete veintiocho veintinueve /;
 
 my @cardinal_dec = qw/
-	0 1 2 treinta cuarenta cincuenta sesenta setenta ochenta noventa /;
+    0 1 2 treinta cuarenta cincuenta sesenta setenta ochenta noventa /;
 
-my @cardinal_centenas = ( "", qw/
-	ciento doscientos trescientos cuatrocientos quinientos
-    seiscientos setecientos ochocientos novecientos / );
-	
-my @cardinal_megas = ( "", qw/ m b tr cuatr quint sext sept oct non dec undec
-    dudec tredec cuatordec quindec sexdec sepdec octodec novendec vigint / );
+my @cardinal_centenas = (
+    "", qw/
+        ciento doscientos trescientos cuatrocientos quinientos
+        seiscientos setecientos ochocientos novecientos /
+);
+
+my @cardinal_megas = (
+    "", qw/ m b tr cuatr quint sext sept oct non dec undec
+        dudec tredec cuatordec quindec sexdec sepdec octodec novendec vigint /
+);
 
 my $MAX_DIGITS = 6 * @cardinal_megas;
-
 
 =head3 cardinal_e2
 
@@ -512,15 +525,14 @@ If $n == 0 nothing is pushed into $nn.
 =cut
 
 sub cardinal_e2($$) {
-    my ($n, $nn) = @_;
+    my ( $n, $nn ) = @_;
 
     return if $n == 0;
-    do { push @$nn, $cardinal_30[ $n ]; return } if $n < 30;
+    do { push @$nn, $cardinal_30[$n]; return } if $n < 30;
     $n =~ /^(.)(.)$/;
-    push @$nn, $cardinal_30[ $2 ], "y" if $2;
-    push @$nn, $cardinal_dec[ $1 ]
+    push @$nn, $cardinal_30[$2], "y" if $2;
+    push @$nn, $cardinal_dec[$1];
 }
-
 
 =head3 cardinal_e3
 
@@ -555,14 +567,13 @@ If $n == 0 nothing is pushed into $nn.
 =cut
 
 sub cardinal_e3($$) {
-    my ($n, $nn) = @_;
+    my ( $n, $nn ) = @_;
 
     return if $n == 0;
     $n == 100 and do { push @$nn, "cien"; return };
     cardinal_e2( $n % 100, $nn );
     $n >= 100 and push @$nn, $cardinal_centenas[ int( $n / 100 ) ];
 }
-
 
 =head3 cardinal_e6
 
@@ -610,17 +621,17 @@ nothing is pushed into $nn.
 =cut
 
 sub cardinal_e6($$$$$) {
-    my ($n, $nn, $mag, $un_mil, $postfix) = @_;
+    my ( $n, $nn, $mag, $un_mil, $postfix ) = @_;
 
     return if $n == 0;
-    push @$nn, $cardinal_megas[ $mag ] . $postfix->[$n == 1] if $mag;
-    cardinal_e3($n % 1000, $nn);
-	my $n3 = int($n / 1000);
-    if ( $n3 ) {
+    push @$nn, $cardinal_megas[$mag] . $postfix->[ $n == 1 ] if $mag;
+    cardinal_e3( $n % 1000, $nn );
+    my $n3 = int( $n / 1000 );
+    if ($n3) {
         push @$nn, "mil";
-        cardinal_e3($n3, $nn) if $n3 != 1 or $un_mil; }
+        cardinal_e3( $n3, $nn ) if $n3 != 1 or $un_mil;
+    }
 }
-
 
 =head3 cardinal_generic
 
@@ -669,19 +680,18 @@ Translation of $n to spanish text as a list of words.
 =cut
 
 sub cardinal_generic($$$$) {
-	my ($n, $exp, $fmag, $gen) = @_;
-    
-	$n =~ s/^0*//;		                # eliminar ceros a la izquierda
+    my ( $n, $exp, $fmag, $gen ) = @_;
+
+    $n =~ s/^0*//;    # eliminar ceros a la izquierda
     return () unless $n;
-    croak("Fuera de rango") if length($n)+$exp > $MAX_DIGITS;
-    $n .= "0" x ($exp % 6);             # agregar ceros a la derecha
-    my $mag = int($exp / 6);
+    croak("Fuera de rango") if length($n) + $exp > $MAX_DIGITS;
+    $n .= "0" x ( $exp % 6 );    # agregar ceros a la derecha
+    my $mag   = int( $exp / 6 );
     my @group = ();
-    $fmag->($1, \@group, $mag++) while $n =~ s/(.{1,6})$//x;
+    $fmag->( $1, \@group, $mag++ ) while $n =~ s/(.{1,6})$//x;
     $group[0] .= $gen if $group[0] =~ /un$/;
     reverse @group;
 }
-
 
 =head3 cardinal_simple
 
@@ -733,15 +743,15 @@ Translation of $n to spanish text as a list of words.
 =cut
 
 sub cardinal_simple($$$;$) {
-	my ($n, $exp, $un_mil, $gen) = @_;
+    my ( $n, $exp, $un_mil, $gen ) = @_;
 
     $un_mil = $un_mil ? 1 : 0;
     $gen = NEUTRAL unless $gen;
     my $format = sub {
-        cardinal_e6($_[0], $_[1], $_[2], $un_mil, [ 'illones', 'illón' ]) };
-    cardinal_generic($n, $exp, $format, $gen)
+        cardinal_e6( $_[0], $_[1], $_[2], $un_mil, [ 'illones', 'illón' ] );
+    };
+    cardinal_generic( $n, $exp, $format, $gen );
 }
-
 
 =head3 fraccion_mag_prefix
 
@@ -796,18 +806,18 @@ Translation of $n to spanish text as a string.
 =cut
 
 sub fraccion_mag_prefix($$) {
-    my ($mag, $gp) = @_;
+    my ( $mag, $gp ) = @_;
 
     return "" unless $mag;
-    return "décim" . $gp if $mag == 1;
+    return "décim" . $gp    if $mag == 1;
     return "centésim" . $gp if $mag == 2;
     my $format = sub {
-        cardinal_e6($_[0], $_[1], $_[2], 0, [ 'illon', 'illon' ]) };
-    my @name = cardinal_generic(1, $mag, $format, "");
+        cardinal_e6( $_[0], $_[1], $_[2], 0, [ 'illon', 'illon' ] );
+    };
+    my @name = cardinal_generic( 1, $mag, $format, "" );
     shift @name unless $mag % 6;
-    join("", @name, "ésim", $gp);
+    join( "", @name, "ésim", $gp );
 }
-
 
 =head3 fraccion_simple
 
@@ -863,17 +873,16 @@ Translation of $n to spanish text as a list of words.
 =cut
 
 sub fraccion_simple($$$$;$) {
-	my ($n, $exp, $un_mil, $gen, $ngen) = @_;
-    
-	$n =~ s/0*$//;                      # eliminar 0 a la derecha
+    my ( $n, $exp, $un_mil, $gen, $ngen ) = @_;
+
+    $n =~ s/0*$//;    # eliminar 0 a la derecha
     return () if $n == 0;
     $ngen = $gen unless defined $ngen;
-	$exp = -$exp + length $n;           # adjust exponent
+    $exp = -$exp + length $n;    # adjust exponent
     croak("Fuera de rango") if $exp > $MAX_DIGITS;
     $gen .= "s" unless $n =~ /^0*1$/;
-    (cardinal_simple($n, 0, $un_mil, $ngen), fraccion_mag_prefix($exp, $gen));
+    ( cardinal_simple( $n, 0, $un_mil, $ngen ), fraccion_mag_prefix( $exp, $gen ) );
 }
-
 
 =head2 ORDINAL SUPPORT
 
@@ -887,13 +896,14 @@ Construction of ordinal numbers
 #
 ####################################################################
 
-my @ordinal_13 = ( '', qw/ primer_ segund_ tercer_ cuart_ quint_ sext_
-                    séptim_ octav_ noven_ décim_ undécim_ duodécim_ / );
+my @ordinal_13 = (
+    '', qw/ primer_ segund_ tercer_ cuart_ quint_ sext_
+        séptim_ octav_ noven_ décim_ undécim_ duodécim_ /
+);
 
 my @ordinal_dec = qw/ 0 1 vi tri cuadra quicua sexa septua octo nona /;
 
 my @ordinal_cen = qw/ 0 c duoc tric cuadring quing sexc septig octing noning /;
-
 
 =head3 ordinal_e2
 
@@ -928,24 +938,26 @@ If $n == 0 nothing is pushed into $nn.
 =cut
 
 sub ordinal_e2($$) {
-    my ($n, $nn) = @_;
+    my ( $n, $nn ) = @_;
 
     return if $n == 0;
     if ( $n < 13 ) {
-        push @$nn, $ordinal_13[ $n ];
-        return }
+        push @$nn, $ordinal_13[$n];
+        return;
+    }
     $n =~ /^(.)(.)$/;
-    my $lo = $ordinal_13[ $2 ];
+    my $lo = $ordinal_13[$2];
     if ( $1 <= 2 ) {
-        my $name = $2   ? ($1 == 1 ? 'decimo' : 'vigesimo')
-                        : ($1 == 1 ? 'décim_' : 'vigésim_');
-        $name =~ s/o$// if $2 == 8;        # special case vowels colapsed
+        my $name = $2
+            ? ( $1 == 1 ? 'decimo' : 'vigesimo' )
+            : ( $1 == 1 ? 'décim_' : 'vigésim_' );
+        $name =~ s/o$// if $2 == 8;    # special case vowels colapsed
         push @$nn, $name . $lo;
-        return }
+        return;
+    }
     push @$nn, $lo if $2;
-    push @$nn, $ordinal_dec[ $1 ] . 'gésim_';
+    push @$nn, $ordinal_dec[$1] . 'gésim_';
 }
-
 
 =head3 ordinal_e3
 
@@ -980,13 +992,12 @@ If $n == 0 nothing is pushed into $nn.
 =cut
 
 sub ordinal_e3($$) {
-    my ($n, $nn) = @_;
+    my ( $n, $nn ) = @_;
 
     return if $n == 0;
-    ordinal_e2($n % 100, $nn);
-    push @$nn, $ordinal_cen[ int($n / 100) ] . 'entésim_' if $n > 99;
+    ordinal_e2( $n % 100, $nn );
+    push @$nn, $ordinal_cen[ int( $n / 100 ) ] . 'entésim_' if $n > 99;
 }
-
 
 =head3 ordinal_e6
 
@@ -1025,21 +1036,23 @@ nothing is pushed into $nn.
 =cut
 
 sub ordinal_e6($$$) {
-    my ($n, $nn, $mag) = @_;
+    my ( $n, $nn, $mag ) = @_;
 
     return if $n == 0;
-    push @$nn, $cardinal_megas[ $mag ] . 'illonésim_' if $mag;
-    ordinal_e3($n % 1000, $nn);
-	my $n3 = int($n / 1000);
-    if ( $n3 ) {
+    push @$nn, $cardinal_megas[$mag] . 'illonésim_' if $mag;
+    ordinal_e3( $n % 1000, $nn );
+    my $n3 = int( $n / 1000 );
+    if ($n3) {
         if ( $n3 > 1 ) {
-            my $pos = @$nn;             # keep pos to adjust number
-            cardinal_e3($n3, $nn);      # this is not a typo, its cardinal
-            $nn->[$pos] .= 'milésim_' }
+            my $pos = @$nn;    # keep pos to adjust number
+            cardinal_e3( $n3, $nn );    # this is not a typo, its cardinal
+            $nn->[$pos] .= 'milésim_';
+        }
         else {
-            push @$nn, "milésim_" }}
+            push @$nn, "milésim_";
+        }
+    }
 }
-
 
 =head3 ordinal_simple
 
@@ -1091,38 +1104,43 @@ Translation of $n to spanish text as a list of words.
 =cut
 
 sub ordinal_simple($$;$) {
-	my ($n, $exp, $gen) = @_;
-    
-	$n =~ s/^0*//;		                # eliminar ceros a la izquierda
+    my ( $n, $exp, $gen ) = @_;
+
+    $n =~ s/^0*//;    # eliminar ceros a la izquierda
     return () unless $n;
-    croak("Fuera de rango") if length($n)+$exp > $MAX_DIGITS;
-    $n .= "0" x ($exp % 6);             # agregar ceros a la derecha
-    my $mag = int($exp / 6);
+    croak("Fuera de rango") if length($n) + $exp > $MAX_DIGITS;
+    $n .= "0" x ( $exp % 6 );    # agregar ceros a la derecha
+    my $mag = int( $exp / 6 );
 
     my @group = ();
     if ( $mag == 0 ) {
         $n =~ s/(.{1,6})$//x;
-        ordinal_e6($1, \@group, $mag++) }
+        ordinal_e6( $1, \@group, $mag++ );
+    }
 
     while ( $n =~ s/(.{1,6})$//x ) {
         if ( $1 == 0 ) {
             $mag++;
-            next }
+            next;
+        }
         my $words = [];
         if ( $1 == 1 ) {
-            push @$words, '' }
+            push @$words, '';
+        }
         else {
-            cardinal_e6($1, $words, 0, 0, []) }
+            cardinal_e6( $1, $words, 0, 0, [] );
+        }
         $words->[0] .= $cardinal_megas[ $mag++ ] . 'illonésim_';
-        push @group, @$words }
+        push @group, @$words;
+    }
 
-    unless ( $gen ) {
-        $group[0] =~ s/r_$/r/;          # Ajustar neutros en 1er, 3er, etc.
-        $gen = MALE }
+    unless ($gen) {
+        $group[0] =~ s/r_$/r/;    # Ajustar neutros en 1er, 3er, etc.
+        $gen = MALE;
+    }
     s/_/$gen/g for @group;
     reverse @group;
 }
-
 
 =head2 MISCELANEOUS
 
@@ -1192,46 +1210,51 @@ Croaks if there is a syntax error.
 =cut
 
 sub parse_num($$$) {
-	my ($num, $dec, $sep) = @_;
+    my ( $num, $dec, $sep ) = @_;
 
-	# Eliminar blancos y separadores
-	$num =~ s/[\s\Q$sep\E]//g;
-	$dec = '\\' . $dec if $dec eq '.';
-	my ($sgn, $int, $frc, $exp) = $num =~ /^
+    # Eliminar blancos y separadores
+    $num =~ s/[\s\Q$sep\E]//g;
+    $dec = '\\' . $dec if $dec eq '.';
+    my ( $sgn, $int, $frc, $exp ) = $num =~ /^
         ([+-]?) (?= \d | $dec\d )   # signo
         (\d*)                       # parte entera
         (?: $dec (\d*) )?           # parte decimal
         (?: [Ee] ([+-]?\d+) )?      # exponente
         $/x or croak("Error de sintaxis");
 
-    $sgn = $sgn eq '-' ? -1 : 1;                # ajustar signo
-    return ($sgn, $int || 0, $frc || 0, $exp) unless $exp ||= 0;
+    $sgn = $sgn eq '-' ? -1 : 1;    # ajustar signo
+    return ( $sgn, $int || 0, $frc || 0, $exp ) unless $exp ||= 0;
 
     $int ||= '';
     $frc ||= '';
 
-	# reducir la magnitud del exponente
-	if ($exp > 0) {
-		if ($exp > length $frc) {
-			$exp -= length $frc;
-			$int .= $frc;
-			$frc = '' }
-		else {
-			$int .= substr($frc, 0, $exp);
-			$frc = substr($frc, $exp);
-			$exp = 0 }}
-	else {
-		if (-$exp > length $int) {
-			$exp += length $int;
-			$frc = $int . $frc;
-			$int = '' }
-		else {
-			$frc = substr($int, $exp + length $int) . $frc;
-			$int = substr($int, 0, $exp + length $int);
-			$exp = 0 }}
-	return ($sgn, $int || 0, $frc || 0, $exp);
+    # reducir la magnitud del exponente
+    if ( $exp > 0 ) {
+        if ( $exp > length $frc ) {
+            $exp -= length $frc;
+            $int .= $frc;
+            $frc = '';
+        }
+        else {
+            $int .= substr( $frc, 0, $exp );
+            $frc = substr( $frc, $exp );
+            $exp = 0;
+        }
+    }
+    else {
+        if ( -$exp > length $int ) {
+            $exp += length $int;
+            $frc = $int . $frc;
+            $int = '';
+        }
+        else {
+            $frc = substr( $int, $exp + length $int ) . $frc;
+            $int = substr( $int, 0, $exp + length $int );
+            $exp = 0;
+        }
+    }
+    return ( $sgn, $int || 0, $frc || 0, $exp );
 }
-
 
 =head3 retval
 
@@ -1252,19 +1275,20 @@ Returns the adjusted $value.
 
 =cut
 
-sub retval($$)
-{
-	my $self = shift;
-    my $rv = shift;
-	if ($self->{ACENTOS}) {
-		if ( $self->{HTML} ) {
-			$rv =~ s/([áéíóú])/&$1acute;/g;
-			$rv =~ tr/áéíóú/aeiou/; } } 
-	else {
-		$rv =~ tr/áéíóú/aeiou/ }
-	return $self->{MAYUSCULAS} ? uc $rv : $rv;
+sub retval($$) {
+    my $self = shift;
+    my $rv   = shift;
+    if ( $self->{ACENTOS} ) {
+        if ( $self->{HTML} ) {
+            $rv =~ s/([áéíóú])/&$1acute;/g;
+            $rv =~ tr/áéíóú/aeiou/;
+        }
+    }
+    else {
+        $rv =~ tr/áéíóú/aeiou/;
+    }
+    return $self->{MAYUSCULAS} ? uc $rv : $rv;
 }
-
 
 # Preloaded methods go here.
 
@@ -1285,7 +1309,7 @@ Jose Rey, E<lt>jrey@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2007 by Jose Rey
+Copyright (C) 2001-2009 by Jose Rey
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
