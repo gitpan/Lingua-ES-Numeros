@@ -8,7 +8,7 @@
 use utf8;
 
 #use lib '/home/opr/W/Projects/Numeros/Lingua-ES-Numbers/lib/';
-use Test::More tests => 32168;
+use Test::More tests => 21835;
 BEGIN { use_ok('Lingua::ES::Numeros') }
 
 #########################
@@ -58,15 +58,22 @@ sub cardinal_iterate_obj {
     my $self = shift;
 
     my $obj = Lingua::ES::Numeros->new( GENERO => 'a' );
+    for my $i ( 0 .. 99 ) {
+        my $n = sprintf("%02d", $i);
+        $t = $obj->real("11.$n");
+        is( $t, "once con $n ctms.", "t_real_2" );
+    }
     while ( my ( $k, $v ) = each %$self ) {
         next if $k =~ /^z/;
         my $t = $obj->cardinal($k);
         $v =~ s/un$/una/g;
+        if ( $v =~ s/(.*(?:illones|llón))?(.+)// ) {
+            my ($hi, $lo) = ($1 || '', $2);
+            $lo =~ s/cientos/cientas/g;
+            $v = $hi . $lo;
+        }
         $v = 'cero' if $v eq '';
         is( $t, $v, "t_cardinal_2" );
-
-        $t = $obj->real("$k.16");
-        is( $t, "$v con 16 ctms.", "t_real_2" );
     }
 }
 
@@ -76,18 +83,18 @@ sub cardinal_test_real {
     my $obj = Lingua::ES::Numeros->new( SEXO => 'a' );
     $obj->{'FORMATO'} = "CON %s";
     my $t = $obj->real("124.345");
-    is( $t, "ciento veinticuatro CON trescientos cuarenta y cinco milésimas", "t_real_2" );
+    is( $t, "ciento veinticuatro CON trescientas cuarenta y cinco milésimas", "t_real_2" );
     $obj->{'MAYUSCULAS'} = 1;
     $t = $obj->real("122.345");
-    is( $t, uc "ciento veintidós CON trescientos cuarenta y cinco milésimas", "t_real_2" );
+    is( $t, uc "ciento veintidós CON trescientas cuarenta y cinco milésimas", "t_real_2" );
     $obj->{'HTML'}    = 1;
     $obj->{'DECIMAL'} = ",";
     $t                = $obj->real("122,345");
-    is( $t, uc "ciento veintid&oacute;s CON trescientos cuarenta y cinco mil&eacute;simas",
+    is( $t, uc "ciento veintid&oacute;s CON trescientas cuarenta y cinco mil&eacute;simas",
         "t_real_2" );
     $obj->{'MAYUSCULAS'} = 0;
     $t = $obj->real("122,345");
-    is( $t, "ciento veintid&oacute;s CON trescientos cuarenta y cinco mil&eacute;simas",
+    is( $t, "ciento veintid&oacute;s CON trescientas cuarenta y cinco mil&eacute;simas",
         "t_real_2" );
     eval { $t = $obj->real("122.345") };
     ok( $@ =~ /^Error de sintaxis/, "Real error de sintaxis" );
@@ -97,13 +104,54 @@ sub cardinal_test_real {
     $obj->{'ACENTOS'}    = 0;
     $obj->{'POSITIVO'}   = "positivo";
     $t                   = $obj->real("124.345");
-    is( $t, uc "positivo ciento veinticuatro CON trescientos cuarenta y cinco milesimas",
+    is( $t, uc "positivo ciento veinticuatro CON trescientas cuarenta y cinco milesimas",
         "t_real_2" );
     $obj->{'MAYUSCULAS'} = 0;
     $t = $obj->real("-0.124345e3");
-    is( $t, "menos ciento veinticuatro CON trescientos cuarenta y cinco milesimas", "t_real_2" );
+    is( $t, "menos ciento veinticuatro CON trescientas cuarenta y cinco milesimas", "t_real_2" );
     $t = $obj->real("-124345e-3");
-    is( $t, "menos ciento veinticuatro CON trescientos cuarenta y cinco milesimas", "t_real_2" );
+    is( $t, "menos ciento veinticuatro CON trescientas cuarenta y cinco milesimas", "t_real_2" );
+    $t = $obj->real("-0.224345e3");
+    is( $t, "menos doscientas veinticuatro CON trescientas cuarenta y cinco milesimas", "t_real_2" );
+    $t = $obj->real("-224345e-3");
+    is( $t, "menos doscientas veinticuatro CON trescientas cuarenta y cinco milesimas", "t_real_2" );
+
+
+    $obj = Lingua::ES::Numeros->new( GENERO => 'o' );
+    $obj->{'FORMATO'} = "CON %s";
+    $t = $obj->real("124.345");
+    is( $t, "ciento veinticuatro CON trescientos cuarenta y cinco milésimos", "t_real_2" );
+    $obj->{'MAYUSCULAS'} = 1;
+    $t = $obj->real("122.345");
+    is( $t, uc "ciento veintidós CON trescientos cuarenta y cinco milésimos", "t_real_2" );
+    $obj->{'HTML'}    = 1;
+    $obj->{'DECIMAL'} = ",";
+    $t                = $obj->real("122,345");
+    is( $t, uc "ciento veintid&oacute;s CON trescientos cuarenta y cinco mil&eacute;simos",
+        "t_real_2" );
+    $obj->{'MAYUSCULAS'} = 0;
+    $t = $obj->real("122,345");
+    is( $t, "ciento veintid&oacute;s CON trescientos cuarenta y cinco mil&eacute;simos",
+        "t_real_2" );
+    eval { $t = $obj->real("122.345") };
+    ok( $@ =~ /^Error de sintaxis/, "Real error de sintaxis" );
+    $obj->{'DECIMAL'}    = ".";
+    $obj->{'HTML'}       = 0;
+    $obj->{'MAYUSCULAS'} = 1;
+    $obj->{'ACENTOS'}    = 0;
+    $obj->{'POSITIVO'}   = "positivo";
+    $t                   = $obj->real("124.345");
+    is( $t, uc "positivo ciento veinticuatro CON trescientos cuarenta y cinco milesimos",
+        "t_real_2" );
+    $obj->{'MAYUSCULAS'} = 0;
+    $t = $obj->real("-0.124345e3");
+    is( $t, "menos ciento veinticuatro CON trescientos cuarenta y cinco milesimos", "t_real_2" );
+    $t = $obj->real("-124345e-3");
+    is( $t, "menos ciento veinticuatro CON trescientos cuarenta y cinco milesimos", "t_real_2" );
+    $t = $obj->real("-0.224345e3");
+    is( $t, "menos doscientos veinticuatro CON trescientos cuarenta y cinco milesimos", "t_real_2" );
+    $t = $obj->real("-224345e-3");
+    is( $t, "menos doscientos veinticuatro CON trescientos cuarenta y cinco milesimos", "t_real_2" );
 
     $obj = $obj->new( GENERO => 'o' );
     $obj->{'FORMATO'} = "CON %2d";

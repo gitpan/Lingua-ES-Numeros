@@ -39,7 +39,7 @@ use Carp;
 
 our @ISA = qw();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 our @EXPORT = qw( MALE FEMALE NEUTRAL );
 
@@ -328,7 +328,7 @@ sub real($;$$) {
         /%([0-9]*)d/ && do {
 
             # Numérico, se da formato a los dígitos
-            $frc = substr( '0' x $exp . $frc, 0, $1 );
+            $frc = substr( '0' x $exp . $frc . '0' x $1, 0, $1 );
             $frc = sprintf( $self->{'FORMATO'}, $frc );
             last;
         };
@@ -688,6 +688,14 @@ sub cardinal_generic($$$$) {
     $n .= "0" x ( $exp % 6 );    # agregar ceros a la derecha
     my $mag   = int( $exp / 6 );
     my @group = ();
+
+    # Translate the lower 6 digits for female numbers
+    if ($gen eq FEMALE) {
+        $n =~ s/(.{1,6})$//x;
+        $fmag->( $1, \@group, $mag++ );
+        s/cientos$/cientas/g for @group;
+    }
+
     $fmag->( $1, \@group, $mag++ ) while $n =~ s/(.{1,6})$//x;
     $group[0] .= $gen if $group[0] =~ /un$/;
     reverse @group;

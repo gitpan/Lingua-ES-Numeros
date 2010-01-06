@@ -69,13 +69,13 @@ sub ordinal_iterate_obj {
     }
 
     eval { $obj->ordinal( 1 x 126 ) };
-    ok( !$@, "Ordinal en rango" );
+    ok( !$@, "Ordinal in range" );
 
     eval { $obj->ordinal( 1 x 127 ) };
-    ok( $@ =~ /^Fuera de rango/, "Ordinal fuera de rango" );
+    ok( $@ =~ /^Fuera de rango/, "Ordinal out of range" );
 
     eval { $obj->ordinal(-1) };
-    ok( $@ =~ /^Ordinal negativo/, "Ordinal negativo" );
+    ok( $@ =~ /^Ordinal negativo/, "Negative ordinal" );
 
     # FIXME: some way to check carp ?
     eval { $obj->ordinal(-0) };
