@@ -5,13 +5,13 @@ Lingua::ES::Numeros - Translates numbers to spanish text
 
 =head1 SYNOPSIS
 
-   use Lingua::ES::Numeros
+   use Lingua::ES::Numeros ":constants";
 
-   $obj = new Lingua::ES::Numeros ('MAYUSCULAS' => 1)
-   print $obj->Cardinal(124856), "\n";
-   print $obj->Real(124856.531), "\n";
+   my $obj = new Lingua::ES::Numeros ('MAYUSCULAS' => 1);
+   print $obj->cardinal(124856), "\n";
+   print $obj->real(124856.531), "\n";
    $obj->{GENERO} = FEMALE;
-   print $obj->Ordinal(124856), "\n";
+   print $obj->ordinal(124856), "\n";
 
 =head1 DESCRIPTION
 
@@ -37,13 +37,13 @@ use warnings;
 
 use Carp;
 
-our @ISA = qw();
+use base qw( Exporter );
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
-our @EXPORT = qw( MALE FEMALE NEUTRAL );
-
-our @EXPORT_OK = qw( MALE FEMALE NEUTRAL );
+our @EXPORT = qw( );
+our @EXPORT_OK = qw( MALE FEMALE NEUTRAL MASCULINO FEMENINO NEUTRO );
+our %EXPORT_TAGS = ( constants => [qw(MALE FEMALE NEUTRAL MASCULINO FEMENINO NEUTRO)] );
 
 # Perl 5.6 fails with this
 #use constant {
@@ -54,6 +54,10 @@ our @EXPORT_OK = qw( MALE FEMALE NEUTRAL );
 use constant MALE    => 'o';
 use constant FEMALE  => 'a';
 use constant NEUTRAL => '';
+
+use constant MASCULINO => 'o';
+use constant FEMENINO  => 'a';
+use constant NEUTRO    => '';
 
 use fields qw/ ACENTOS MAYUSCULAS UNMIL HTML DECIMAL SEPARADORES GENERO
     POSITIVO NEGATIVO FORMATO /;
@@ -67,7 +71,7 @@ receive as parameters any of the above mentioned fields.
 
 Examples:
 
-      use Lingua::ES::Numeros;
+      use Lingua::ES::Numeros ':constants';
       
       # Use the fields' default values
       $obj = new Lingua::ES::Numeros; 
@@ -129,6 +133,9 @@ and Ordinal numbers:
  | 3 | tres | tres | tres  | tercero | tercera | tercer  |
  +---+------+------+-------+---------+---------+---------+
 
+The constants MALE, FEMALE and NEUTRAL and their spanish counterparts MASCULINO,
+FEMENINO and NEUTRO, may be imported with the tag ":constants" on module use.
+
 =item SEXO
 
 Deprecated option only for backward compatibility, use GENERO instead.
@@ -162,9 +169,9 @@ translated. Its default value is 'con %2d ctms.' (see the B<real> method)
 
 =head3 Aliases
 
-By popular demand I have added the following aliases for the options:
+All the options have the following english aliases.
 
-    Alias        Natural Name
+    English       Option name
     --------------------------
     ACCENTS       ACENTOS          
     UPPERCASE     MAYUSCULAS  

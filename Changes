@@ -1,5 +1,9 @@
 Revision history for Perl extension Lingua::ES::Numeros.
 
+0.08  Wed Mar  3 11:43:08 VET 2010
+    - Create tag :constants to import genre constants
+    - Documentation and examples fixes
+
 0.07  Wed Jan  6 00:14:36 VET 2010
     - Corrected fractional formating bug in real() thanks to Joaquin Ferrero
     - Corrected female hundreths under one million
