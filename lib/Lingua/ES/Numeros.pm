@@ -39,7 +39,7 @@ use Carp;
 
 use base qw( Exporter );
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 our @EXPORT = qw( );
 our @EXPORT_OK = qw( MALE FEMALE NEUTRAL MASCULINO FEMENINO NEUTRO );
@@ -253,7 +253,7 @@ Textual representation of the number as a string
 
 =cut
 
-sub cardinal($) {
+sub cardinal_str($) {
     my $self = shift;
     my $num  = shift;
     my ( $sgn, $ent, $frc, $exp ) = parse_num( $num, $self->{'DECIMAL'}, $self->{'SEPARADORES'} );
@@ -261,11 +261,16 @@ sub cardinal($) {
     if (@words) {
         unshift @words, $self->{'NEGATIVO'} if $sgn < 0 and $self->{'NEGATIVO'};
         unshift @words, $self->{'POSITIVO'} if $sgn > 0 and $self->{'POSITIVO'};
-        $self->retval( join( " ", @words ) );
+        return join( " ", @words );
     }
     else {
-        $self->retval('cero');
+        'cero';
     }
+}
+
+sub cardinal($) {
+    my $self = shift;
+    $self->retval($self->cardinal_str(shift));
 }
 
 =head2 real
@@ -347,7 +352,7 @@ sub real($;$$) {
         };
     }
     if ($ent) {
-        $ent = $self->cardinal( ( $sgn < 0 ? '-' : '+' ) . $ent );
+        $ent = $self->cardinal_str( ( $sgn < 0 ? '-' : '+' ) . $ent );
     }
     else {
         $ent = 'cero';
@@ -1293,19 +1298,18 @@ Returns the adjusted $value.
 sub retval($$) {
     my $self = shift;
     my $rv   = shift;
+    $rv = uc $rv if $self->{MAYUSCULAS};
     if ( $self->{ACENTOS} ) {
         if ( $self->{HTML} ) {
-            $rv =~ s/([áéíóú])/&$1acute;/g;
-            $rv =~ tr/áéíóú/aeiou/;
+            $rv =~ s/([ÁáÉéÍíÓóÚú])/&$1acute;/g;
+            $rv =~ tr/ÁáÉéÍíÓóÚú/AaEeIiOoUu/;
         }
     }
     else {
-        $rv =~ tr/áéíóú/aeiou/;
+        $rv =~ tr/ÁáÉéÍíÓóÚú/AaEeIiOoUu/;
     }
-    return $self->{MAYUSCULAS} ? uc $rv : $rv;
+    return $rv;
 }
-
-# Preloaded methods go here.
 
 1;
 __END__

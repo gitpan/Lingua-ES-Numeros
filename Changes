@@ -1,5 +1,12 @@
 Revision history for Perl extension Lingua::ES::Numeros.
 
+0.09  dom jul 10 13:25:46 VET 2011
+    - Fix HTML entities names when MAYUSCULAS=>1 as reported via RT #69323
+      by Eduardo Tubert <eatubert@insoft.com.mx>
+    - New test cases for HTML entity names
+    - Split cardinal method to use cardinal_str. Fixes a bug found after 
+      fixing entity names.
+
 0.08  Wed Mar  3 11:43:08 VET 2010
     - Create tag :constants to import genre constants
     - Documentation and examples fixes

@@ -9,7 +9,7 @@ use utf8;
 use strict;
 use warnings;
 
-use Test::More tests => 81;
+use Test::More tests => 85;
 BEGIN { use_ok('Lingua::ES::Numeros') }
 
 #########################
@@ -124,5 +124,23 @@ sub parser {
     }
 }
 
+sub simple_tests {
+    my $obj = Lingua::ES::Numeros->new();
+
+    # Check for proper XHTML entity names, testscase for bug #69323
+    # thanks to "Eduardo Tubert" <eatubert@insoft.com.mx>
+    $obj->acentos(1);
+    ok($obj->cardinal(16016) eq "dieciséis mil dieciséis", "Lowercase text with accents");
+    $obj->mayusculas( 1 );
+    ok($obj->cardinal(16016) eq "DIECISÉIS MIL DIECISÉIS", "Uppercase text with accents");
+    $obj->mayusculas( 0 );
+    $obj->html(1);
+    ok($obj->cardinal(16016) eq "diecis&eacute;is mil diecis&eacute;is", "Lowercase XHTML");
+    $obj->mayusculas( 1 );
+    ok($obj->cardinal(16016) eq "DIECIS&Eacute;IS MIL DIECIS&Eacute;IS", "Uppercase XHTML");
+    $obj->mayusculas( 0 );
+}
+
 accesors;
 parser;
+simple_tests;

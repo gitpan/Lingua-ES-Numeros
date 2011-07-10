@@ -77,6 +77,12 @@ sub cardinal_iterate_obj {
     }
 }
 
+sub xml_uc($) {
+    my $t = uc shift;
+    $t =~ s/ACUTE;/acute;/g;
+    return $t;
+}
+
 sub cardinal_test_real {
     my $self = shift;
 
@@ -90,7 +96,7 @@ sub cardinal_test_real {
     $obj->{'HTML'}    = 1;
     $obj->{'DECIMAL'} = ",";
     $t                = $obj->real("122,345");
-    is( $t, uc "ciento veintid&oacute;s CON trescientas cuarenta y cinco mil&eacute;simas",
+    is( $t, xml_uc "ciento veintid&oacute;s CON trescientas cuarenta y cinco mil&eacute;simas",
         "t_real_2" );
     $obj->{'MAYUSCULAS'} = 0;
     $t = $obj->real("122,345");
@@ -123,11 +129,11 @@ sub cardinal_test_real {
     is( $t, "ciento veinticuatro CON trescientos cuarenta y cinco milésimos", "t_real_2" );
     $obj->{'MAYUSCULAS'} = 1;
     $t = $obj->real("122.345");
-    is( $t, uc "ciento veintidós CON trescientos cuarenta y cinco milésimos", "t_real_2" );
+    is( $t, xml_uc "ciento veintidós CON trescientos cuarenta y cinco milésimos", "t_real_2" );
     $obj->{'HTML'}    = 1;
     $obj->{'DECIMAL'} = ",";
     $t                = $obj->real("122,345");
-    is( $t, uc "ciento veintid&oacute;s CON trescientos cuarenta y cinco mil&eacute;simos",
+    is( $t, xml_uc "ciento veintid&oacute;s CON trescientos cuarenta y cinco mil&eacute;simos",
         "t_real_2" );
     $obj->{'MAYUSCULAS'} = 0;
     $t = $obj->real("122,345");
